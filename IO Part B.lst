@@ -1,0 +1,37 @@
+(ARCTools Version 2.1.2)
+ HexLoc     DecLoc    MachWord   Label        Instruction                Comment
+                                              .equ 0x3fffc0              !Starting point of memory mapped region
+                                              .equ 0x0                   !0xffff0000 Console Data Port
+                                              .equ 0x4                   !0xffff0004 Console Status Port
+                                              .equ 0x8                   !0xffff0008 Keyboard Data Port
+                                              .equ 0xc                   !0xffff000c Keyboard Control port
+                                              .org 2048                  !Stating program address
+00000800  0000002048  88000000                add %r0, %r0, %r4          !Clear r4
+00000804  0000002052  093fffc0                sethi 4194240, %r4         !Get 22 MSB of 0x3fffc0 into %r4
+                                                                         
+00000808  0000002056  ffffffff  InWait:       halt                       
+0000080c  0000002060  c209200c                ldub %r4, [12], %r1        
+00000810  0000002064  82886080                andcc %r1, 128, %r1        !And r1 and constant 0x80 store in r1, setting condition 
+00000814  0000002068  02bffffd                be -3                      !Branch to InWait
+                                                                         
+00000818  0000002072  c6092008                ldub %r4, [8], %r3         !Reads input
+0000081c  0000002076  8aa0e01b                subcc %r3, 27, %r5         !27 is Escape
+00000820  0000002080  02800006                be 6                       !Stop if it is
+                                                                         
+00000824  0000002084  c2092004  Wait:         ldub %r4, [4], %r1         
+00000828  0000002088  82886080                andcc %r1, 128, %r1        !And r1 and constant 0x80 store in r1, setting condition
+0000082c  0000002092  02bffffe                be -2                      !Branch to Wait
+00000830  0000002096  c6292000                stb %r3, %r4, [0]          !Print to console
+00000834  0000002100  10bffff5                ba -11                     !Branch to InWait
+                                                                         
+00000838  0000002104  ffffffff  End:          halt                       
+
+--- Symbol Table ---
+InWait: 2056
+BASE: 4194240
+Wait: 2084
+CICTL: 12
+End: 2104
+CIN: 8
+COUT: 0
+COSTAT: 4
